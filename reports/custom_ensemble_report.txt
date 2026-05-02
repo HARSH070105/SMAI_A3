@@ -1,0 +1,38 @@
+==================================================
+   CUSTOM ENSEMBLE PROMPT RESULTS
+==================================================
+
+Overall Top-1 Accuracy: 86.40%
+
+Detailed Report:
+                       precision    recall  f1-score   support
+
+         Ajanta Caves       1.00      0.87      0.93        31
+     Charar-E- Sharif       0.97      1.00      0.99        34
+      Chhota_Imambara       0.91      0.67      0.77        30
+         Ellora Caves       0.89      1.00      0.94        34
+       Fatehpur Sikri       0.80      0.86      0.83        42
+     Gateway of India       0.88      1.00      0.94        30
+           Hawa mahal       0.95      0.94      0.94        81
+       Humayun_s Tomb       0.81      0.97      0.88        30
+           India_gate       0.94      0.98      0.96        45
+            Khajuraho       0.95      0.95      0.95        44
+    Sun Temple Konark       0.91      0.97      0.94        40
+         alai_darwaza       0.25      0.47      0.33        36
+           alai_minar       0.91      0.86      0.88        35
+basilica_of_bom_jesus       0.97      0.97      0.97        30
+            charminar       1.00      0.75      0.86        40
+        golden temple       0.88      1.00      0.94        65
+          iron_pillar       1.00      0.54      0.70       100
+   jamali_kamali_tomb       0.60      0.52      0.56        46
+         lotus_temple       1.00      1.00      1.00        30
+        mysore_palace       0.93      0.90      0.91        29
+          qutub_minar       0.79      0.96      0.86        70
+             tajmahal       1.00      0.98      0.99        62
+      tanjavur temple       0.91      0.91      0.91        45
+    victoria memorial       1.00      1.00      1.00        30
+
+             accuracy                           0.86      1059
+            macro avg       0.89      0.88      0.87      1059
+         weighted avg       0.89      0.86      0.87      1059
+
