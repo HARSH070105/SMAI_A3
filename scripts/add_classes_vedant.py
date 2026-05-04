@@ -9,6 +9,7 @@ Usage:
 
 import os
 import time
+import random
 import argparse
 import requests
 from pathlib import Path
@@ -118,7 +119,7 @@ def add_class(canonical, query, target, test_size, per_request):
         return 0
 
     needed = target - existing_total
-    print(f"  [{canonical}] downloading up to {needed} images...")
+    print(f"  [{canonical}] downloading up to {needed} images to train, then splitting...")
 
     os.makedirs(train_folder, exist_ok=True)
     os.makedirs(test_folder,  exist_ok=True)
@@ -126,8 +127,8 @@ def add_class(canonical, query, target, test_size, per_request):
     downloaded = 0
     offset     = 0
     train_idx  = existing_train + 1
-    test_idx   = existing_test  + 1
 
+    # Download everything to train first
     while downloaded < needed:
         results, offset = search_and_get_urls(query, limit=per_request, offset=offset)
         if not results:
@@ -136,25 +137,25 @@ def add_class(canonical, query, target, test_size, per_request):
         for url, ext in results:
             if downloaded >= needed:
                 break
-            total_so_far = existing_total + downloaded
-            if total_so_far < test_size:
-                dst_path = os.path.join(test_folder, f"{test_idx}{ext}")
-                if download_image(url, dst_path):
-                    downloaded += 1
-                    test_idx   += 1
-                    print(f"    {downloaded}/{needed} → test", flush=True)
-            else:
-                dst_path = os.path.join(train_folder, f"{train_idx}{ext}")
-                if download_image(url, dst_path):
-                    downloaded += 1
-                    train_idx  += 1
-                    print(f"    {downloaded}/{needed} → train", flush=True)
+            dst_path = os.path.join(train_folder, f"{train_idx}{ext}")
+            if download_image(url, dst_path):
+                downloaded += 1
+                train_idx  += 1
+                print(f"    {downloaded}/{needed} downloaded", flush=True)
             time.sleep(32)
 
         if offset is None:
             break
 
-    print(f"    → Downloaded {downloaded} images.")
+    # Randomly move test_size images from train to test
+    all_train = [p for p in Path(train_folder).iterdir() if p.suffix.lower() in IMAGE_EXTS]
+    existing_test_count = sum(1 for p in Path(test_folder).iterdir() if p.suffix.lower() in IMAGE_EXTS) if os.path.isdir(test_folder) else 0
+    still_needed_test = max(0, test_size - existing_test_count)
+    to_move = random.sample(all_train, min(still_needed_test, len(all_train)))
+    for i, img in enumerate(to_move, start=existing_test_count + 1):
+        dst = os.path.join(test_folder, f"{i}{img.suffix}")
+        os.rename(str(img), dst)
+    print(f"    → Downloaded {downloaded}, moved {len(to_move)} to test randomly.")
     return downloaded
 
 
