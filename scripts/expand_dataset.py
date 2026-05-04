@@ -81,66 +81,65 @@ def next_index(folder: str) -> int:
     return max(indices, default=0) + 1
 
 
-def get_category_members(category: str, limit: int = 50, cont: str = None):
+def search_and_get_urls(query: str, limit: int = 50, offset: int = 0):
     """
-    Returns (list of file titles, continuation token or None).
+    Single API call: searches Wikimedia Commons File namespace for `query`
+    and returns imageinfo for all results in one shot.
+    Returns (list of (url, ext) tuples, next_offset or None).
     """
     params = {
         "action": "query",
-        "list": "categorymembers",
-        "cmtitle": f"Category:{category}",
-        "cmtype": "file",
-        "cmlimit": limit,
+        "generator": "search",
+        "gsrnamespace": "6",      # File namespace only
+        "gsrsearch": query,
+        "gsrlimit": limit,
+        "gsroffset": offset,
+        "prop": "imageinfo",
+        "iiprop": "url|size|mime|thumburl",
+        "iiurlwidth": 800,        # request 800px thumbnail — ~100KB vs 10-50MB full res
         "format": "json",
     }
-    if cont:
-        params["cmcontinue"] = cont
     try:
-        r = requests.get(COMMONS_API, params=params, headers=HEADERS, timeout=15)
+        r = requests.get(COMMONS_API, params=params, headers=HEADERS, timeout=20)
         data = r.json()
-        members = [m["title"] for m in data.get("query", {}).get("categorymembers", [])]
-        cont_token = data.get("continue", {}).get("cmcontinue")
-        return members, cont_token
+        pages = data.get("query", {}).get("pages", {})
+        results = []
+        for page in pages.values():
+            infos = page.get("imageinfo", [])
+            if not infos:
+                continue
+            info = infos[0]
+            mime     = info.get("mime", "")
+            thumburl = info.get("thumburl", "")
+            width    = info.get("width", 0)
+            height   = info.get("height", 0)
+            if mime in ("image/jpeg", "image/png") and width >= 300 and height >= 300 and thumburl:
+                ext = ".jpg" if mime == "image/jpeg" else ".png"
+                results.append((thumburl, ext))
+        next_offset = data.get("continue", {}).get("gsroffset")
+        return results, next_offset
     except Exception:
         return [], None
 
 
-def get_image_url(file_title: str):
-    """Return the direct download URL for a Wikimedia file title."""
-    params = {
-        "action": "query",
-        "titles": file_title,
-        "prop": "imageinfo",
-        "iiprop": "url|size|mime",
-        "format": "json",
-    }
-    try:
-        r = requests.get(COMMONS_API, params=params, headers=HEADERS, timeout=15)
-        pages = r.json().get("query", {}).get("pages", {})
-        for page in pages.values():
-            info = page.get("imageinfo", [{}])[0]
-            mime = info.get("mime", "")
-            url = info.get("url", "")
-            width = info.get("width", 0)
-            height = info.get("height", 0)
-            if mime in ("image/jpeg", "image/png") and width >= 200 and height >= 200:
-                return url
-    except Exception:
-        pass
-    return None
-
-
-def download_image(url: str, dst_path: str) -> bool:
+def download_image(url: str, dst_path: str, max_bytes: int = 4_000_000) -> bool:
     """Download a single image to dst_path. Returns True on success."""
     try:
-        r = requests.get(url, headers=HEADERS, timeout=20, stream=True)
+        r = requests.get(url, headers=HEADERS, timeout=8, stream=True)
+        if r.status_code == 429:
+            time.sleep(60)          # back off for 1 minute then let caller retry
+            return False
         if r.status_code != 200:
             return False
+        size = 0
         with open(dst_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
+                size += len(chunk)
+                if size > max_bytes:        # skip oversized files
+                    os.remove(dst_path)
+                    return False
                 f.write(chunk)
-        # Reject tiny files (likely error pages or thumbnails)
-        if os.path.getsize(dst_path) < 5000:
+        if os.path.getsize(dst_path) < 5000: # skip tiny/broken files
             os.remove(dst_path)
             return False
         return True
@@ -169,34 +168,26 @@ def expand_class(canonical: str, category: str, target: int, per_request: int):
     os.makedirs(train_folder, exist_ok=True)
 
     downloaded = 0
-    cont_token = None
+    offset = 0
     idx = next_index(train_folder)
 
     while downloaded < needed:
-        members, cont_token = get_category_members(category, limit=per_request, cont=cont_token)
-        if not members:
+        results, offset = search_and_get_urls(category, limit=per_request, offset=offset)
+        if not results:
             break
 
-        for title in members:
+        for url, ext in results:
             if downloaded >= needed:
                 break
-            ext = os.path.splitext(title)[-1].lower()
-            if ext not in IMAGE_EXTS:
-                continue
-
-            url = get_image_url(title)
-            if not url:
-                time.sleep(0.2)
-                continue
-
             dst_path = os.path.join(train_folder, f"{idx}{ext}")
             if download_image(url, dst_path):
                 downloaded += 1
                 idx += 1
-            time.sleep(0.3)
+                print(f"    {downloaded}/{needed} downloaded", flush=True)
+            time.sleep(32)          # Wikimedia rate limit — 32s between downloads
 
-        if not cont_token:
-            break  # no more pages in this category
+        if offset is None:
+            break  # no more search results
 
     print(f"    → Downloaded {downloaded} images.")
     return downloaded
