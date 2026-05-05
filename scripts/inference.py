@@ -24,15 +24,59 @@ def load_model(base_model_id="openai/clip-vit-base-patch32", lora_weights_path=N
     model.eval()
     return model, processor, device
 
-def precompute_text_features(model, processor, class_names, device):
+def precompute_text_features(model, processor, class_names, device, use_custom_ensemble=True):
     """
     Precomputes text embeddings for a given set of class names.
-    Creates a simple "A photo of the {class_name}." prompt.
+    If use_custom_ensemble is True, uses multiple prompts from custom_prompts.py and averages them.
+    Otherwise, uses a single "A photo of the {class_name}." prompt.
     """
+    if use_custom_ensemble:
+        try:
+            from custom_prompts import custom_monument_prompts
+            prototype_vectors = []
+            with torch.no_grad():
+                for cls in class_names:
+                    if cls in custom_monument_prompts:
+                        ensemble_sentences = custom_monument_prompts[cls]
+                    else:
+                        ensemble_sentences = [f"A photo of the {cls.replace('_', ' ')}."]
+                        
+                    text_inputs = processor(text=ensemble_sentences, return_tensors="pt", padding=True, truncation=True).to(device)
+                    
+                    try:
+                        text_outputs = model.get_text_features(**text_inputs)
+                    except AttributeError:
+                        text_outputs = model.base_model.get_text_features(**text_inputs)
+                        
+                    if not isinstance(text_outputs, torch.Tensor):
+                        if hasattr(text_outputs, "text_embeds"):
+                            text_features = text_outputs.text_embeds
+                        elif hasattr(text_outputs, "pooler_output"):
+                            text_features = text_outputs.pooler_output
+                        else:
+                            text_features = text_outputs[0]
+                    else:
+                        text_features = text_outputs
+                        
+                    # Normalize all vectors
+                    text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+                    # Average them into a single vector
+                    mean_vector = text_features.mean(dim=0)
+                    # Normalize the final averaged prototype vector
+                    prototype_vector = mean_vector / mean_vector.norm(dim=-1, keepdim=True)
+                    prototype_vectors.append(prototype_vector)
+                    
+            # Stack all individual vectors into a single matrix
+            text_features = torch.stack(prototype_vectors).to(device)
+            return text_features
+        except ImportError:
+            print("Warning: custom_prompts module not found. Falling back to single prompt baseline.")
+
+    # Fallback / Single Prompt Baseline
     prompts = [f"A photo of the {cls.replace('_', ' ')}." for cls in class_names]
     
     with torch.no_grad():
-        text_inputs = processor(text=prompts, return_tensors="pt", padding=True).to(device)
+        text_inputs = processor(text=prompts, return_tensors="pt", padding=True, truncation=True).to(device)
         
         # Try using get_text_features, fallback to base_model if peft doesn't delegate it
         try:
