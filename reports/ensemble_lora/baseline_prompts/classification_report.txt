@@ -1,0 +1,51 @@
+==================================================
+   ENSEMBLE_LORA + BASELINE PROMPTS
+==================================================
+
+Overall Top-1 Accuracy: 92.58%
+
+Detailed Report:
+                         precision    recall  f1-score   support
+
+        Adalaj Stepwell       1.00      0.80      0.89        15
+              Agra Fort       0.61      0.73      0.67        15
+           Ajanta Caves       0.94      1.00      0.97        31
+    Akbar Tomb Sikandra       0.78      0.47      0.58        15
+        Bibi Ka Maqbara       0.93      0.87      0.90        15
+            Chand Baori       0.88      0.93      0.90        15
+       Charar-E- Sharif       1.00      0.97      0.99        34
+        Chhota_Imambara       1.00      1.00      1.00        30
+           Ellora Caves       1.00      1.00      1.00        34
+         Fatehpur Sikri       0.91      0.93      0.92        42
+       Gateway of India       1.00      1.00      1.00        30
+             Hawa mahal       0.89      0.96      0.92        81
+         Humayun_s Tomb       0.94      1.00      0.97        30
+             India_gate       0.96      1.00      0.98        45
+        Itmad-ud-Daulah       0.88      0.93      0.90        15
+      Jama Masjid Delhi       0.71      0.80      0.75        15
+              Khajuraho       1.00      0.91      0.95        44
+      Lotus Mahal Hampi       1.00      1.00      1.00        15
+            Rani ki Vav       0.93      0.93      0.93        15
+         Red Fort Delhi       0.53      0.60      0.56        15
+        Safdarjung Tomb       0.63      0.80      0.71        15
+      Sun Temple Konark       0.87      1.00      0.93        40
+Virupaksha Temple Hampi       0.56      0.60      0.58        15
+   Vittala Temple Hampi       0.69      0.73      0.71        15
+           alai_darwaza       0.97      0.94      0.96        36
+             alai_minar       1.00      0.94      0.97        35
+  basilica_of_bom_jesus       1.00      1.00      1.00        30
+              charminar       1.00      0.75      0.86        40
+          golden temple       1.00      1.00      1.00        65
+            iron_pillar       0.95      0.93      0.94       100
+     jamali_kamali_tomb       0.93      0.89      0.91        46
+           lotus_temple       1.00      1.00      1.00        30
+          mysore_palace       1.00      0.90      0.95        29
+            qutub_minar       0.88      0.99      0.93        70
+               tajmahal       1.00      0.92      0.96        62
+        tanjavur temple       0.95      0.89      0.92        45
+      victoria memorial       1.00      1.00      1.00        30
+
+               accuracy                           0.93      1254
+              macro avg       0.90      0.90      0.89      1254
+           weighted avg       0.93      0.93      0.93      1254
+
