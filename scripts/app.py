@@ -203,7 +203,7 @@ st.markdown("""
 # ════════════════════════════════════════════════════════════════════════════
 
 @st.cache_data
-def load_metadata(path: str = "monuments_metadata.json") -> dict:
+def load_metadata(path: str = "../docs/monuments_metadata.json") -> dict:
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -215,19 +215,36 @@ def load_metadata(path: str = "monuments_metadata.json") -> dict:
 @st.cache_resource
 def load_clip_model():
     """Load model, processor and precompute text features.
-    
-    Class names are derived from the local metadata JSON — the HF dataset
+
+    Class names are derived from the local metadata JSON. The HF dataset
     is NOT downloaded here, so no image data is pulled into memory.
+
+    NOTE: we intentionally re-open the JSON here rather than calling
+    load_metadata() because @st.cache_resource and @st.cache_data use
+    separate cache stores; calling the cached helper from inside a
+    cache_resource function can return an empty dict before cache_data
+    has been populated.
     """
     from model_utils import load_model, precompute_text_features
     from dataset_utils import build_enriched_prompts
 
-    METADATA_JSON = "monuments_metadata.json"
+    METADATA_JSON = "../docs/monuments_metadata.json"
     LORA_PATH     = st.secrets.get("LORA_PATH", None)
 
-    # ── class names come from metadata keys, zero dataset download ──
-    metadata    = load_metadata(METADATA_JSON)   # already cached via @st.cache_data
-    class_names = list(metadata.keys())          # e.g. ["Ajanta Caves", "Charar-E-Sharif", ...]
+    # Load metadata directly (safe inside cache_resource)
+    try:
+        with open(METADATA_JSON, "r", encoding="utf-8") as f:
+            metadata = json.load(f)
+    except FileNotFoundError:
+        st.error(f"Could not find {METADATA_JSON}. Make sure it is in the same folder as app.py.")
+        st.stop()
+
+    class_names = list(metadata.keys())
+    if not class_names:
+        st.error(f"{METADATA_JSON} loaded but contains no entries. Check the file contents.")
+        st.stop()
+
+    print(f"[load_clip_model] {len(class_names)} classes loaded from metadata.")
 
     enriched_prompts = build_enriched_prompts(class_names, metadata)
 
@@ -245,14 +262,14 @@ def classify_image(pil_image: Image.Image):
     return run_inference(pil_image, model, processor, text_features, class_names, device)
 
 
-def get_meta(name: str, metadata: dict) -> dict | None:
+def get_meta(name: str, metadata: dict):
     """Fuzzy-ish lookup: try exact key, then replace underscores."""
     return metadata.get(name) or metadata.get(name.replace("_", " "))
 
 
-def cities_from_metadata(metadata: dict) -> dict[str, list[str]]:
+def cities_from_metadata(metadata: dict) -> dict:
     """Return {city_state: [monument_name, ...]} grouped by location."""
-    city_map: dict[str, list[str]] = {}
+    city_map = {}
     for name, info in metadata.items():
         loc = info.get("location", "Unknown")
         city_map.setdefault(loc, []).append(name)
@@ -261,7 +278,7 @@ def cities_from_metadata(metadata: dict) -> dict[str, list[str]]:
 
 # ── Clue generation ─────────────────────────────────────────────────────────
 
-def build_clues(meta: dict) -> list[str]:
+def build_clues(meta: dict) -> list:
     clues = []
     if meta.get("state"):
         clues.append(f"🗺️ This monument is somewhere in **{meta['state']}**.")
