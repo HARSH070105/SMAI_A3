@@ -430,7 +430,7 @@ if mode == "🔍 Direct Classification":
         col_img, col_res = st.columns([1, 1], gap="large")
 
         with col_img:
-            st.image(image, caption="Your uploaded image", use_container_width=True)
+            st.image(image, caption="Your uploaded image", width='stretch')
 
         with col_res:
             with st.spinner("Analysing monument…"):
@@ -524,6 +524,7 @@ else:
         "clues_revealed": 0,
         "hunt_solved": False,
         "hunt_failed": False,
+        "verify_key": 0,          # ← counter to reset file uploader
     }.items():
         if key not in st.session_state:
             st.session_state[key] = default
@@ -548,6 +549,7 @@ else:
         st.session_state.clues_revealed  = 1
         st.session_state.hunt_solved     = False
         st.session_state.hunt_failed     = False
+        st.session_state.verify_key      += 1   # ← reset uploader on new hunt too
 
     # ── Active hunt ───────────────────────────────────────────────────────────
     if st.session_state.hunt_target and not st.session_state.hunt_solved:
@@ -611,7 +613,7 @@ else:
         verify_img = st.file_uploader(
             "Upload your monument photo",
             type=["jpg", "jpeg", "png", "webp"],
-            key="verify_upload",
+            key=f"verify_upload_{st.session_state.verify_key}",   # ← dynamic key
             label_visibility="collapsed",
         )
 
@@ -620,14 +622,14 @@ else:
             vcol1, vcol2 = st.columns([1, 1], gap="large")
 
             with vcol1:
-                st.image(v_image, caption="Your photo", use_container_width=True)
+                st.image(v_image, caption="Your photo", width='stretch')
 
             with vcol2:
                 with st.spinner("Verifying your location…"):
-                    time.sleep(0.5)                          # small UX delay
+                    time.sleep(0.5)
                     pred_class, probs = classify_image(v_image)
 
-                top_prob  = list(probs.values())[0] * 100
+                top_prob   = list(probs.values())[0] * 100
                 is_correct = pred_class == target
 
                 if is_correct:
@@ -657,8 +659,9 @@ else:
                       </span>
                     </div>
                     """, unsafe_allow_html=True)
+
                     if st.button("🔄 Try Again"):
-                        st.session_state.verify_upload = None
+                        st.session_state.verify_key += 1   # ← increment to reset uploader
                         st.rerun()
 
     # ── Solved state ─────────────────────────────────────────────────────────
@@ -673,6 +676,7 @@ else:
 
         st.markdown('<hr class="fancy-divider">', unsafe_allow_html=True)
         if st.button("🎯 Start a New Hunt"):
-            for key in ["hunt_city","hunt_target","hunt_clues","clues_revealed","hunt_solved","hunt_failed"]:
+            for key in ["hunt_city", "hunt_target", "hunt_clues", "clues_revealed", "hunt_solved", "hunt_failed"]:
                 st.session_state[key] = None if "city" in key or "target" in key else ([] if "clues" in key else 0 if "revealed" in key else False)
+            st.session_state.verify_key += 1   # ← reset uploader on new hunt
             st.rerun()
