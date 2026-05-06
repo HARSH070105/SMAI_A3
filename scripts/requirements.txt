@@ -1,6 +1,18 @@
-streamlit>=1.35.0
-torch>=2.1.0
-transformers>=4.40.0
-peft>=0.10.0
-datasets>=2.19.0
-Pillow>=10.0.0
+# Web Framework
+streamlit
+
+# Image Processing
+Pillow
+
+# Deep Learning (Core)
+torch
+torchvision
+
+# CLIP and Model Loading
+transformers
+peft
+ftfy
+regex
+
+# Data Handling
+pathlib
