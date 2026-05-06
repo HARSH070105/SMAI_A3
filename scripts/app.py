@@ -24,179 +24,310 @@ st.set_page_config(
 # ── Custom CSS ───────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap');
-
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
+ 
+  :root {
+    --teal:       #03889f;
+    --teal-dark:  #026478;
+    --teal-light: #e6f5f8;
+    --teal-mid:   #b3dde5;
+    --black:      #0d0d0d;
+    --gray-900:   #1a1a1a;
+    --gray-700:   #3d3d3d;
+    --gray-400:   #9a9a9a;
+    --gray-100:   #f4f4f4;
+    --white:      #ffffff;
+  }
+ 
   /* ── global ── */
-  html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-  h1, h2, h3 { font-family: 'Playfair Display', serif; }
-
-  .stApp { background: #0f0e17; color: #fffffe; }
-
+  html, body, [class*="css"] {
+    font-family: 'Outfit', sans-serif;
+    color: var(--black);
+  }
+  h1, h2, h3 { font-family: 'Cormorant Garamond', serif; }
+ 
+  .stApp { background: var(--white); color: var(--black); }
+ 
   /* ── sidebar ── */
   section[data-testid="stSidebar"] {
-    background: #1a1a2e;
-    border-right: 1px solid #2d2d44;
+    background: var(--black) !important;
+    border-right: 3px solid var(--teal);
   }
-  section[data-testid="stSidebar"] * { color: #fffffe !important; }
-
+  section[data-testid="stSidebar"] * { color: var(--white) !important; }
+  section[data-testid="stSidebar"] .stRadio label { color: var(--white) !important; }
+ 
   /* ── hero title ── */
   .hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 900;
-    background: linear-gradient(135deg, #ff8906, #f25f4c, #e53170);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1.1;
-    margin-bottom: 0.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.05;
+    margin-bottom: 0.2rem;
+    letter-spacing: -0.02em;
   }
+  .hero-title span { color: var(--teal); }
   .hero-sub {
-    color: #a7a9be;
-    font-size: 1rem;
-    font-weight: 300;
-    letter-spacing: 0.08em;
+    color: var(--gray-400);
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
   }
-
-  /* ── mode cards ── */
-  .mode-card {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border: 1px solid #2d2d44;
-    border-radius: 16px;
-    padding: 2rem;
-    text-align: center;
-    transition: border-color 0.3s, transform 0.2s;
-    cursor: pointer;
-    min-height: 180px;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-  }
-  .mode-card:hover { border-color: #ff8906; transform: translateY(-4px); }
-  .mode-card .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-  .mode-card h3 { font-family: 'Playfair Display', serif; color: #ff8906; margin: 0 0 0.5rem; }
-  .mode-card p { color: #a7a9be; font-size: 0.85rem; margin: 0; }
-
+ 
   /* ── result card ── */
   .result-card {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    border: 1px solid #ff8906;
-    border-radius: 16px;
+    background: var(--white);
+    border: 2px solid var(--black);
+    border-radius: 4px;
     padding: 1.75rem;
     margin-top: 1rem;
+    position: relative;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 6px;
+    right: -6px; bottom: -6px;
+    background: var(--teal);
+    z-index: -1;
+    border-radius: 4px;
   }
   .result-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
-    color: #ff8906;
-    margin: 0 0 0.25rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    color: var(--black);
+    margin: 0 0 0.2rem;
+    font-weight: 700;
   }
-  .result-location { color: #a7a9be; font-size: 0.9rem; margin-bottom: 1rem; }
-
+  .result-location {
+    color: var(--gray-400);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+ 
   /* ── confidence bar ── */
-  .conf-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
-  .conf-label { color: #fffffe; font-size: 0.85rem; width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .conf-bar-bg { flex: 1; background: #2d2d44; border-radius: 99px; height: 8px; }
-  .conf-bar-fill { height: 8px; border-radius: 99px; background: linear-gradient(90deg, #ff8906, #f25f4c); }
-  .conf-pct { color: #ff8906; font-size: 0.85rem; font-weight: 500; width: 44px; text-align: right; }
-
+  .conf-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+  .conf-label {
+    color: var(--gray-700);
+    font-size: 0.82rem;
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'Outfit', sans-serif;
+  }
+  .conf-bar-bg { flex: 1; background: var(--gray-100); border-radius: 0; height: 6px; }
+  .conf-bar-fill { height: 6px; border-radius: 0; background: var(--teal); }
+  .conf-pct {
+    color: var(--teal);
+    font-size: 0.78rem;
+    font-weight: 600;
+    width: 44px;
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+  }
+ 
   /* ── info pills ── */
   .pill {
     display: inline-block;
-    background: #2d2d44;
-    color: #ff8906;
-    border-radius: 99px;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.78rem;
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    border: 1px solid var(--teal-mid);
+    border-radius: 2px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.75rem;
     margin: 0.2rem 0.2rem 0.2rem 0;
     font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.04em;
   }
-
+ 
   /* ── fun facts ── */
   .fact-item {
     display: flex; gap: 0.75rem; align-items: flex-start;
-    background: #16213e; border-radius: 10px;
-    padding: 0.75rem 1rem; margin-bottom: 0.5rem;
-    border-left: 3px solid #ff8906;
+    background: var(--gray-100);
+    border-radius: 2px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid var(--teal);
   }
-  .fact-num { color: #ff8906; font-weight: 700; min-width: 20px; }
-
+  .fact-num { color: var(--teal); font-weight: 700; min-width: 20px; font-family: 'DM Mono', monospace; }
+ 
   /* ── clue card ── */
   .clue-card {
-    background: linear-gradient(135deg, #16213e, #0f3460);
-    border: 1px solid #e53170;
-    border-radius: 14px;
+    background: var(--white);
+    border: 1.5px solid var(--black);
+    border-radius: 2px;
     padding: 1.5rem;
     margin-bottom: 1rem;
     position: relative;
   }
   .clue-badge {
-    position: absolute; top: -10px; left: 16px;
-    background: #e53170; color: #fff;
-    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
-    padding: 0.2rem 0.75rem; border-radius: 99px; text-transform: uppercase;
+    position: absolute; top: -11px; left: 16px;
+    background: var(--teal); color: var(--white);
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.14em;
+    padding: 0.22rem 0.8rem; border-radius: 1px; text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
   }
-  .clue-text { color: #fffffe; font-size: 1rem; line-height: 1.6; margin-top: 0.5rem; }
-
+  .clue-text { color: var(--gray-900); font-size: 0.97rem; line-height: 1.65; margin-top: 0.5rem; }
+ 
   /* ── success / fail banners ── */
   .success-banner {
-    background: linear-gradient(135deg, #1a3a1a, #0f3d0f);
-    border: 1px solid #4caf50; border-radius: 14px; padding: 1.5rem;
-    text-align: center; color: #81c784;
-    font-family: 'Playfair Display', serif; font-size: 1.4rem;
+    background: var(--teal-light);
+    border: 2px solid var(--teal);
+    border-radius: 4px; padding: 1.75rem;
+    text-align: center; color: var(--teal-dark);
+    font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700;
   }
   .fail-banner {
-    background: linear-gradient(135deg, #3a1a1a, #3d0f0f);
-    border: 1px solid #e53170; border-radius: 14px; padding: 1.5rem;
-    text-align: center; color: #f48fb1;
-    font-family: 'Playfair Display', serif; font-size: 1.3rem;
+    background: #fff5f5;
+    border: 2px solid #cc2a2a;
+    border-radius: 4px; padding: 1.75rem;
+    text-align: center; color: #a01c1c;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700;
   }
-
+ 
   /* ── divider ── */
   .fancy-divider {
-    border: none; height: 1px;
-    background: linear-gradient(90deg, transparent, #ff8906, transparent);
-    margin: 1.5rem 0;
+    border: none; height: 1.5px;
+    background: var(--teal);
+    margin: 1.75rem 0;
+    opacity: 0.25;
   }
-
+ 
   /* ── streamlit overrides ── */
   .stButton > button {
-    background: linear-gradient(135deg, #ff8906, #f25f4c) !important;
-    color: #0f0e17 !important; border: none !important;
-    font-weight: 700 !important; font-family: 'DM Sans', sans-serif !important;
-    border-radius: 8px !important; padding: 0.6rem 1.5rem !important;
-    transition: opacity 0.2s !important;
+    background: var(--teal) !important;
+    color: var(--white) !important;
+    border: 2px solid var(--teal) !important;
+    font-weight: 600 !important;
+    font-family: 'Outfit', sans-serif !important;
+    border-radius: 2px !important;
+    padding: 0.55rem 1.6rem !important;
+    letter-spacing: 0.04em !important;
+    transition: background 0.18s, color 0.18s !important;
   }
-  .stButton > button:hover { opacity: 0.88 !important; }
-
-  div[data-testid="stFileUploader"] {
-    background: #1a1a2e; border: 1px dashed #2d2d44;
-    border-radius: 12px; padding: 1rem;
+  .stButton > button:hover {
+    background: var(--white) !important;
+    color: var(--teal) !important;
   }
-
-  .stSelectbox > div > div { background: #1a1a2e !important; color: #fffffe !important; }
-  .stProgress > div > div > div { background: linear-gradient(90deg, #ff8906, #f25f4c) !important; }
-
+ 
+  div[data-testid="stFileUploader"] section > div {
+    color: var(--black) !important;
+  }
+  
+  /* Styling the 'Browse files' button inside the uploader */
+  div[data-testid="stFileUploader"] button {
+    border: 1px solid var(--teal) !important;
+    color: var(--teal) !important;
+    background-color: transparent !important;
+  }
+ 
+  .stSelectbox > div > div { background: var(--white) !important; color: var(--black) !important; border: 1.5px solid var(--black) !important; }
+  .stProgress > div > div > div { background: var(--teal) !important; }
+ 
   /* ── map link button ── */
   .map-btn {
     display: inline-block;
-    background: #16213e; border: 1px solid #ff8906;
-    color: #ff8906 !important; border-radius: 8px;
-    padding: 0.5rem 1.2rem; font-size: 0.85rem;
-    text-decoration: none; font-weight: 600;
-    transition: background 0.2s;
+    background: var(--white);
+    border: 1.5px solid var(--teal);
+    color: var(--teal) !important;
+    border-radius: 2px;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.82rem;
+    text-decoration: none;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.03em;
+    transition: background 0.18s, color 0.18s;
   }
-  .map-btn:hover { background: #ff8906; color: #0f0e17 !important; }
-
+  .map-btn:hover { background: var(--teal); color: var(--white) !important; }
+ 
   /* ── section header ── */
   .section-hdr {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem; color: #a7a9be;
-    text-transform: uppercase; letter-spacing: 0.12em;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
     margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--gray-100);
+    padding-bottom: 0.4rem;
   }
+ 
+  /* ── sidebar brand ── */
+  .sidebar-brand {
+    text-align: center;
+    padding: 1.25rem 0 1.5rem;
+    border-bottom: 1px solid #2a2a2a;
+    margin-bottom: 1rem;
+  }
+  .sidebar-icon { font-size: 2.2rem; }
+  .sidebar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--white) !important;
+    line-height: 1.15;
+    margin-top: 0.4rem;
+  }
+  .sidebar-title span { color: #03889f !important; }
+  .sidebar-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: #666 !important;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+ 
+  /* ── hunt location banner ── */
+  .hunt-banner {
+    background: var(--black);
+    border-radius: 2px;
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--teal);
+  }
+  .hunt-banner-label {
+    color: var(--gray-400);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-family: 'DM Mono', monospace;
+  }
+  .hunt-banner-city {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    color: var(--white);
+    font-weight: 600;
+    margin-top: 0.15rem;
+  }
+ 
+  /* ── alt card ── */
+  .alt-card {
+    background: var(--white);
+    border: 1.5px solid var(--gray-100);
+    border-radius: 2px;
+    padding: 1rem;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .alt-card:hover { border-color: var(--teal); }
+  .alt-name {
+    color: var(--black);
+    font-weight: 700;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+  }
+  .alt-loc { color: var(--gray-400); font-size: 0.75rem; margin-top: 0.2rem; }
+  .alt-pct { color: var(--teal); font-size: 0.88rem; font-weight: 600; margin-top: 0.35rem; font-family: 'DM Mono', monospace; }
 </style>
 """, unsafe_allow_html=True)
-
 
 # ════════════════════════════════════════════════════════════════════════════
 # Helpers
@@ -342,17 +473,18 @@ def render_monument_info(name: str, meta: dict, show_location_link: bool = True)
     if history:
         st.markdown('<hr class="fancy-divider">', unsafe_allow_html=True)
         st.markdown('<div class="section-hdr">History</div>', unsafe_allow_html=True)
-        st.markdown(f'<p style="color:#c9c9d3;line-height:1.7;">{history}</p>', unsafe_allow_html=True)
-
+        # Use var(--gray-700) or a specific dark grey like #333333:
+        st.markdown(f'<p style="color:var(--gray-700); line-height:1.7; font-size:1.05rem;">{history}</p>', unsafe_allow_html=True)
     facts = meta.get("fun_facts", [])
     if facts:
         st.markdown('<hr class="fancy-divider">', unsafe_allow_html=True)
         st.markdown('<div class="section-hdr">Fun Facts</div>', unsafe_allow_html=True)
         for i, fact in enumerate(facts, 1):
+# Use the black variable or a dark gray for readability:
             st.markdown(f"""
             <div class="fact-item">
-              <span class="fact-num">{i}</span>
-              <span style="color:#fffffe;">{fact}</span>
+                <span class="fact-num">{i}</span>
+                <span style="color:var(--black);">{fact}</span>
             </div>""", unsafe_allow_html=True)
 
     if show_location_link and (maps_url or wiki_url):
