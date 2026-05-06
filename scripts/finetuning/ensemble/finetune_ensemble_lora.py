@@ -15,7 +15,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model_id = "openai/clip-vit-base-patch32"
 BATCH_SIZE = 32
-EPOCHS = 10
+EPOCHS = 15
 LEARNING_RATE = 5e-5
 
 TRAIN_DIR = os.path.join(ROOT_DIR, "data", "24_monuments", "Indian-monuments", "images", "train")
